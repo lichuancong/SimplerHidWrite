@@ -5,12 +5,14 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-      # Windows自带MSBuild，不用装dotnet，改用msbuild编译
-      - name: Build with MSBuild
-        run: |
-          msbuild SimplerHidWrite.sln /p:Configuration=Release
-          dotnet publish SimplerHidWrite.csproj -c Release --self-contained true -p:PublishSingleFile=true
-      - name: ExportEXE
+      # 加载VS编译工具（自带MSBuild+Net4.8运行库）
+      - name: Setup MSBuild
+        uses: ilammy/msvc-dev-cmd@v1
+      # 和作者VS编译一模一样的命令
+      - name: Build Solution
+        run: msbuild "SimplerHidWrite.sln" /p:Configuration=Release /p:Platform="Any CPU"
+      # 上传编译好的exe
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          path: '**/publish/SimplerHidWrite.exe'
+          path: '**/bin/Release/SimplerHidWrite.exe'
