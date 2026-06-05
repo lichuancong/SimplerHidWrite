@@ -2,12 +2,10 @@ name: BuildHID
 on: push
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: windows-2022
     steps:
       - uses: actions/checkout@v4
-      - name: 编译项目
-        run: '"C:\Program Files\Microsoft Visual Studio\2022\Enterprise\MSBuild\Current\Bin\MSBuild.exe" SimplerHidWrite.sln /p:Configuration=Release'
-      - name: 打包导出
+      - name: 打包全源码
         uses: actions/upload-artifact@v4
         with:
-          path: bin/Release/SimplerHidWrite.exe
+          path: .
