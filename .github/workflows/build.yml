@@ -1,18 +1,45 @@
-name: BuildHID
-on: push
+name: Build Hidapi EXE
+
+on:
+  push:
+    branches: [ main ] # 或 master
+
 jobs:
-  build:
+  build-exe:
     runs-on: windows-latest
+
     steps:
-      - uses: actions/checkout@v4
-      # 加载VS编译工具（自带MSBuild+Net4.8运行库）
-      - name: Setup MSBuild
-        uses: ilammy/msvc-dev-cmd@v1
-      # 和作者VS编译一模一样的命令
-      - name: Build Solution
-        run: msbuild "SimplerHidWrite.sln" /p:Configuration=Release /p:Platform="Any CPU"
-      # 上传编译好的exe
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          path: '**/bin/Release/SimplerHidWrite.exe'
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: true # 关键！必须拉取子模块，否则缺少 hid.c 等源文件
+
+    - name: Setup MSVC
+      uses: ilammy/msvc-dev-cmd@v1
+
+    - name: Create main.c
+      run: |
+        echo '#include <stdio.h>' > main.c
+        echo '#include "hidapi.h"' >> main.c
+        echo 'int main() {' >> main.c
+        echo '    if (hid_init() != 0) { printf("Init failed\n"); return -1; }' >> main.c
+        echo '    struct hid_device_info *devs = hid_enumerate(0x0, 0x0);' >> main.c
+        echo '    struct hid_device_info *cur = devs;' >> main.c
+        echo '    while (cur) {' >> main.c
+        echo '        printf("Found: VID=0x%04X PID=0x%04X\n", cur->vendor_id, cur->product_id);' >> main.c
+        echo '        cur = cur->next;' >> main.c
+        echo '    }' >> main.c
+        echo '    hid_free_enumeration(devs);' >> main.c
+        echo '    hid_exit();' >> main.c
+        echo '    return 0;' >> main.c
+        echo '}' >> main.c
+
+    - name: Compile to EXE
+      run: |
+        cl /MT /Fe:hid_tool.exe main.c windows/hid.c setupapi.lib
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: hid-tool-exe
+        path: hid_tool.exe
