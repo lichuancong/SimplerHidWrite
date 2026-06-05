@@ -5,11 +5,12 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-      # 直接调用系统自带msbuild，win-latest预装VS编译环境
-      - name: Build Release
-        run: |
-          msbuild SimplerHidWrite.sln /p:Configuration=Release
-      - name: Upload Exe
+      - name: VSBuild
+        uses: microsoft/vs-build@v1
+        with:
+          solution: SimplerHidWrite.sln
+          configuration: Release
+      - name: 导出EXE
         uses: actions/upload-artifact@v4
         with:
-          path: bin/Release/SimplerHidWrite.exe
+          path: '**/Release/SimplerHidWrite.exe'
