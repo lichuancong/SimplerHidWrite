@@ -5,12 +5,9 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-      - name: VSBuild
-        uses: microsoft/vs-build@v1
-        with:
-          solution: SimplerHidWrite.sln
-          configuration: Release
-      - name: 导出EXE
+      - name: 编译项目
+        run: '"C:\Program Files\Microsoft Visual Studio\2022\Enterprise\MSBuild\Current\Bin\MSBuild.exe" SimplerHidWrite.sln /p:Configuration=Release'
+      - name: 打包导出
         uses: actions/upload-artifact@v4
         with:
-          path: '**/Release/SimplerHidWrite.exe'
+          path: bin/Release/SimplerHidWrite.exe
