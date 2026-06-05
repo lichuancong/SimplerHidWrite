@@ -2,7 +2,7 @@ name: Build Hidapi EXE
 
 on:
   push:
-    branches: [ main ] # 或 master
+    branches: [ main, master ] # 兼容 main 或 master 分支
 
 jobs:
   build-exe:
@@ -12,12 +12,12 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
-        submodules: true # 关键！必须拉取子模块，否则缺少 hid.c 等源文件
+        submodules: true # 必须开启子模块
 
-    - name: Setup MSVC
+    - name: Setup MSVC Environment
       uses: ilammy/msvc-dev-cmd@v1
 
-    - name: Create main.c
+    - name: Create main.c (Entry Point)
       run: |
         echo '#include <stdio.h>' > main.c
         echo '#include "hidapi.h"' >> main.c
@@ -26,20 +26,5 @@ jobs:
         echo '    struct hid_device_info *devs = hid_enumerate(0x0, 0x0);' >> main.c
         echo '    struct hid_device_info *cur = devs;' >> main.c
         echo '    while (cur) {' >> main.c
-        echo '        printf("Found: VID=0x%04X PID=0x%04X\n", cur->vendor_id, cur->product_id);' >> main.c
-        echo '        cur = cur->next;' >> main.c
-        echo '    }' >> main.c
-        echo '    hid_free_enumeration(devs);' >> main.c
-        echo '    hid_exit();' >> main.c
-        echo '    return 0;' >> main.c
-        echo '}' >> main.c
-
-    - name: Compile to EXE
-      run: |
-        cl /MT /Fe:hid_tool.exe main.c windows/hid.c setupapi.lib
-
-    - name: Upload Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: hid-tool-exe
-        path: hid_tool.exe
+        echo '        printf("Found Device: VID=0x%04X PID=0x%04X\n", cur->vendor_id, cur->product_id);' >> main.c
+        echo '
