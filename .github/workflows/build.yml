@@ -5,9 +5,14 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+      # 新增：自动安装.NET Framework编译环境
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '4.8'
       - name: Build Publish
         run: dotnet publish -c Release --self-contained true -p:PublishSingleFile=true
       - name: ExportEXE
         uses: actions/upload-artifact@v4
         with:
-          path: bin/Release/net48/publish/SimplerHidWrite.exe
+          path: '**/publish/SimplerHidWrite.exe'
